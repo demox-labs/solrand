@@ -1,0 +1,263 @@
+{
+  "version": "0.0.0",
+  "name": "solrand",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "requester",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "oracle",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "requestBump",
+          "type": "u8"
+        },
+        {
+          "name": "vaultBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "requestRandom",
+      "accounts": [
+        {
+          "name": "requester",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "oracle",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "publishRandom",
+      "accounts": [
+        {
+          "name": "oracle",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "random",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "pktId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "tlsId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "transferAuthority",
+      "accounts": [
+        {
+          "name": "requester",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "newAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Requester",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "oracle",
+            "type": "publicKey"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "count",
+            "type": "u64"
+          },
+          {
+            "name": "lastUpdated",
+            "type": "i64"
+          },
+          {
+            "name": "random",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "pktId",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "tlsId",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "activeRequest",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Vault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "requester",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 300,
+      "name": "Unauthorized",
+      "msg": "You are not authorized to complete this transaction"
+    },
+    {
+      "code": 301,
+      "name": "AlreadyCompleted",
+      "msg": "You have already completed this transaction"
+    },
+    {
+      "code": 302,
+      "name": "InflightRequest",
+      "msg": "A request is already in progress. Only one request may be made at a time"
+    },
+    {
+      "code": 303,
+      "name": "WrongOracle",
+      "msg": "The Oracle you make the request with must be the same as initialization"
+    },
+    {
+      "code": 304,
+      "name": "RequesterLocked",
+      "msg": "You cannot change authority of a request awaiting a response"
+    }
+  ],
+  "metadata": {
+    "address": "GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS"
+  }
+}

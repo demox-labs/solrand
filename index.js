@@ -1,6 +1,6 @@
-const { UserSession, MockOracleSession } = require("./sessions.js");
+const { UserSession, MockOracleSession } = require("./app/sessions.js");
 
-const SOLRAND_IDL = require("../target/idl/solrand.json");
+const SOLRAND_IDL = require("./app/solrand.json");
 const PROGRAM_ID = "GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS";
 const ORACLE_DEVNET = "qkyoiJyAtt7dzaUTsiQYYyGRrnJL3AE1mP93bmFXpY8";
 

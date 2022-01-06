@@ -1,7 +1,7 @@
 {
   "name": "@demox_labs/solrand",
   "description": "A js client to interact with the solrand program",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/evanmarshall/solrand.git"
@@ -26,8 +26,15 @@
     "@types/mocha": "^9.0.0",
     "typescript": "^4.3.5"
   },
-  "main": "app/index.js",
+  "main": "index.js",
   "directories": {
     "test": "tests"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+      "index.js",
+      "/app"
+  ]
 }
