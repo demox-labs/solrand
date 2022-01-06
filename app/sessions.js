@@ -1,6 +1,12 @@
 const anchor = require('@project-serum/anchor');
 const { randomBytes } = require('crypto');
 
+const ORACLE_DEVNET = "qkyoiJyAtt7dzaUTsiQYYyGRrnJL3AE1mP93bmFXpY8";
+
+/**
+ * Defines a Wrapper around the anchor Program and Provider classes
+ * Useful for isolating wallets & simplifying api calls
+ */
 class Session {
     constructor(keypair, idl, programId, env) {
         this.keypair = keypair;
@@ -32,15 +38,23 @@ class Session {
     }
 }
 
+/**
+ * Defines a session to interact as the user requesting random information.
+ */
 class UserSession extends Session {
     constructor(keypair, idl, programId, oraclePubkey, env) {
         super(keypair, idl, programId, env);
         this.oraclePubkey = oraclePubkey;
     }
 
+    /**
+     * Create two accounts:
+     * Random: Used for storing data
+     * Vault: Used for storing lamports
+     */
     async setAccounts() {
         anchor.setProvider(this.provider);
-        [this.randomAccount, this.randBump] = await anchor.web3.PublicKey.findProgramAddress(
+        [this.reqAccount, this.reqBump] = await anchor.web3.PublicKey.findProgramAddress(
             [Buffer.from(this.seed), this.keypair.publicKey.toBuffer()],
             this.programId
             );
@@ -51,6 +65,7 @@ class UserSession extends Session {
             );
     }
 
+    // Only use this locally
     async airdropVaultAccount(amount=1000000000) {
         anchor.setProvider(this.provider);
 
@@ -63,11 +78,11 @@ class UserSession extends Session {
     async initializeAccount() {
         anchor.setProvider(this.provider);
         await this.program.rpc.initialize(
-            this.randBump,
+            this.reqBump,
             this.vaultBump,
             {
                 accounts: {
-                    requester: this.randomAccount,
+                    requester: this.reqAccount,
                     vault: this.vaultAccount,
                     authority: this.keypair.publicKey,
                     oracle: this.oraclePubkey,
@@ -83,7 +98,7 @@ class UserSession extends Session {
         anchor.setProvider(this.provider);
         await this.program.rpc.requestRandom({
             accounts: {
-                requester: this.randomAccount,
+                requester: this.reqAccount,
                 vault: this.vaultAccount,
                 authority: this.keypair.publicKey,
                 oracle: this.oraclePubkey,
@@ -94,6 +109,9 @@ class UserSession extends Session {
     }
 }
 
+/**
+ * Used for testing & example to deploy your own oracle
+ */
 class MockOracleSession extends Session {
     constructor(keypair, idl, programId, env) {
         super(keypair, idl, programId, env);
