@@ -7,8 +7,6 @@ describe('solrand', () => {
     const AIRDROP = 1000000000;
     const FEE = 495000; // In lamports, defined in lib.rs
 
-    console.log(anchor.workspace);
-
     const oracleKeypair = anchor.web3.Keypair.generate();
     const oracleSession = new OracleSession(oracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
     const userKeypair = anchor.web3.Keypair.generate();
@@ -30,14 +28,10 @@ describe('solrand', () => {
         assert(notOracleBalance == AIRDROP);
     });
 
-    it("Setting accounts ensures that accounts are not empty", async () => {
+    it('Initializes properly', async () => {
+        // Set accounts
         await userSession.setAccounts();
 
-        assert(userSession.randomAccount);
-        assert(userSession.randBump > -1);
-    });
-
-    it('Initializes properly', async () => {
         const beforeBalance = await userSession.getBalance();
         await userSession.initializeAccount();
         const afterBalance = await userSession.getBalance();
