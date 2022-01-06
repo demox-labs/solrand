@@ -14,12 +14,14 @@ pub mod solrand {
         request_bump: u8,
         vault_bump: u8,
     ) -> ProgramResult {
+        // Set the vault account, used to pay the oracle
         ctx.accounts.vault.requester = *ctx.accounts.requester.to_account_info().key;
         ctx.accounts.vault.bump = vault_bump;
 
         let requester = &mut ctx.accounts.requester.load_init()?;
         let clock: Clock = Clock::get().unwrap();
 
+        // The requester is ZeroCopy and stores the random number
         requester.authority = *ctx.accounts.authority.key;
         requester.oracle = *ctx.accounts.oracle.key;
         requester.created_at = clock.unix_timestamp;
@@ -34,6 +36,7 @@ pub mod solrand {
     pub fn request_random(
         ctx: Context<RequestRandom>,
     ) -> ProgramResult {
+        // Some checks to ensure proper account ownership
         {
             let requester_key = ctx.accounts.requester.to_account_info().key();
 
@@ -57,6 +60,7 @@ pub mod solrand {
             }
         }
 
+        // Transfer fee to Oracle
         {
             let vault = ctx.accounts.vault.to_account_info();
 
@@ -70,6 +74,7 @@ pub mod solrand {
             
         }
 
+        // Once the requester has active_request set, it's frozen until the Oracle responds
         {
             let requester = &mut ctx.accounts.requester.load_mut()?;
             let clock: Clock = Clock::get().unwrap();
@@ -88,6 +93,7 @@ pub mod solrand {
         pkt_id: [u8; 32],
         tls_id: [u8; 32],
     ) -> ProgramResult {
+        // Have to load the account this way to avoid automated ownership checks
         let loader: Loader<Requester> = Loader::try_from_unchecked(ctx.program_id, &ctx.remaining_accounts[0]).unwrap();
         let mut requester = loader.load_mut()?;
 
@@ -109,6 +115,9 @@ pub mod solrand {
         Ok(())
     }
 
+    /**
+     * Used by PDAs in CPIs to lock an Oracle request
+     */
     pub fn transfer_authority(
         ctx: Context<TransferAuthority>
     ) -> ProgramResult {
