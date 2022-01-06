@@ -1,5 +1,5 @@
 {
-  "name": "@demox_labs/solrand",
+  "name": "@demox-labs/solrand",
   "description": "A js client to interact with the solrand program",
   "version": "0.0.3",
   "repository": {
