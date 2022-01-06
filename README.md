@@ -23,7 +23,18 @@ This repository creates the:
 
 ## For CPI Calls
 
-If you're writing a Solana program to interact with this one, I recommend using 
+If you're writing a Solana program to interact with this one, we recommend:
+1. Installing & running the `solana-test-validator`
+2. Clone & Install this repository with the instructions above.
+3. Run `anchor build && anchor deploy` or `anchor test --skip-local-validator` to deploy program to test validator. You'll need to redo this if you ever reset the `solana-test-validator` for example by running it with `-r`.
+
+Now you can run your program using for example:
+* `anchor build && anchor deploy && node my-script.js`
+* `anchor test --skip-test-validator`
+
+You could alternatively copy the state of devnet and load it locally but full installation is recommended as described.
+Any CPI call should test all error states & full installation makes development much easier if you can update the program to force them. 
+
 
 # Examples
 
