@@ -6,7 +6,7 @@ The random numbers are provided by Random.org.
 This repository implements the Solana program and provides some utilities to make interacting with it easier.
 
 This repository creates the:
-* solrand crate (Rust)
+* solrand crate (Rust): https://crates.io/crates/solrand
 * solrand package on npm (JS)
 
 # Installation
