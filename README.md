@@ -46,6 +46,12 @@ The best resource for understanding how to interact with solrand is through the 
 
 The tests, `tests/solrand.ts`, provide examples in how to use our client library.
 
+# Security Considerations
+
+1. This code has not been audited by a third party. If you find issues please submit them. We plan get an audit as soon as we can.
+2. The random numbers for the Oracle are provided by Random.org. Outages are certainly possible as with any Oracle so we plan to add multiple random sources in the future. Error handling for hanging responses should be a consideration.
+3. The Demox Protocol is in its beginning stages and at this point, still requires trust in Demox Labs as a third party. With the launch of our dVPN, no third party need be trusted but for this, it requires trusting that we're not fabricating packet captures and tls sessions. We will publish logs of our Random.Org account as to show usage consistent with that publicly available onchain.
+
 # Troubleshooting
 
 ## Problems with Anchor
