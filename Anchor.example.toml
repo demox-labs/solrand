@@ -1,0 +1,12 @@
+[programs.localnet]
+solrand = "GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = Your solana key
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
