@@ -7,7 +7,7 @@ This repository implements the Solana program and provides some utilities to mak
 
 This repository creates the:
 * solrand crate (Rust): https://crates.io/crates/solrand
-* solrand package on npm (JS)
+* solrand package on npm (JS): https://www.npmjs.com/package/@demox_labs/solrand
 
 # Installation
 
