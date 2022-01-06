@@ -1,8 +1,6 @@
 const anchor = require('@project-serum/anchor');
 const { randomBytes } = require('crypto');
 
-const ORACLE_DEVNET = "qkyoiJyAtt7dzaUTsiQYYyGRrnJL3AE1mP93bmFXpY8";
-
 /**
  * Defines a Wrapper around the anchor Program and Provider classes
  * Useful for isolating wallets & simplifying api calls
