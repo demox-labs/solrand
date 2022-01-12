@@ -9,3 +9,5 @@ Anchor.toml
 *.pem*
 *.csv*
 *keypair.json*
+localhost-ledger*
+test-ledger*

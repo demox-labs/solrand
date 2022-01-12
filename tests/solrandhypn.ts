@@ -2,17 +2,17 @@ import * as anchor from '@project-serum/anchor';
 import { assert } from "chai";
 import { UserSession, MockOracleSession as OracleSession } from "../app/sessions.js";
 
-describe('solrand', () => {
+describe('solrandhypn', () => {
     const ENV = 'http://localhost:8899';
     const AIRDROP = 1000000000;
     const FEE = 495000; // In lamports, defined in lib.rs
 
     const oracleKeypair = anchor.web3.Keypair.generate();
-    const oracleSession = new OracleSession(oracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
+    const oracleSession = new OracleSession(oracleKeypair, anchor.workspace.Solrandhypn.idl, anchor.workspace.Solrandhypn.programId, ENV);
     const userKeypair = anchor.web3.Keypair.generate();
-    const userSession = new UserSession(userKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, oracleKeypair.publicKey, ENV);
+    const userSession = new UserSession(userKeypair, anchor.workspace.Solrandhypn.idl, anchor.workspace.Solrandhypn.programId, oracleKeypair.publicKey, ENV);
     const notOracleKeypair = anchor.web3.Keypair.generate();
-    const notOracleSession = new OracleSession(notOracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
+    const notOracleSession = new OracleSession(notOracleKeypair, anchor.workspace.Solrandhypn.idl, anchor.workspace.Solrandhypn.programId, ENV);
 
     async function getRequester(oraclePubKey) {
         let requesters = await userSession.program.account.requester.all();

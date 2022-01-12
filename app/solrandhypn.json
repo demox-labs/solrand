@@ -1,6 +1,6 @@
 {
   "version": "0.0.0",
-  "name": "solrand",
+  "name": "solrandhypn",
   "instructions": [
     {
       "name": "initialize",
@@ -258,6 +258,6 @@
     }
   ],
   "metadata": {
-    "address": "7f7utthxAnEo57p3UTaY6ewYVtQMp2kGkFA3i1C93yry"
+    "address": "CrkGQLM8mnWxUV2bGXacvFtnk3oVyeP6grRyFgu6XJ9G"
   }
 }

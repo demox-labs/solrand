@@ -112,7 +112,13 @@ class UserSession extends Session {
  */
 class MockOracleSession extends Session {
     constructor(keypair, idl, programId, env) {
-        super(keypair, idl, programId, env);
+        try {
+            super(keypair, idl, programId, env);
+        } catch (ex) {
+            console.log(ex);
+            console.log(`MockOracleSession.constructor: keypair='${keypair}' idl='${idl}' programId='${programId} env='${env}'`);
+            throw ex;
+        }
     }
 
     async publishRandom(requester, randomNumber=randomBytes(64)) {
