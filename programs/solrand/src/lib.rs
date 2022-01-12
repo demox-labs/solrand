@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use std::mem::size_of;
 
-declare_id!("7f7utthxAnEo57p3UTaY6ewYVtQMp2kGkFA3i1C93yry");
+declare_id!("CrkGQLM8mnWxUV2bGXacvFtnk3oVyeP6grRyFgu6XJ9G");
 
 #[program]
 pub mod solrand {
