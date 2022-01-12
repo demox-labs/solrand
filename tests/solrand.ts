@@ -13,7 +13,7 @@ describe('solrand', () => {
     const userSession = new UserSession(userKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, oracleKeypair.publicKey, ENV);
     const notOracleKeypair = anchor.web3.Keypair.generate();
     const notOracleSession = new OracleSession(notOracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
-
+    
     it('Setting up tests', async() => {
         await userSession.requestAirdrop(AIRDROP);
         await oracleSession.requestAirdrop(AIRDROP);
@@ -30,20 +30,29 @@ describe('solrand', () => {
 
     it('Initializes properly', async () => {
         // Set accounts
+        console.log("point 1")
         await userSession.setAccounts();
 
+        console.log("point 2")
         const beforeBalance = await userSession.getBalance();
         await userSession.initializeAccount();
         const afterBalance = await userSession.getBalance();
 
+        console.log("point 3")
         let requesters = await userSession.program.account.requester.all();
 
-        assert(requesters.length == 1);
+        console.log("point 4: ", `'requesters.length'=='${requesters.length}'`)
+        assert(requesters.length >= 1);
+        console.log("point 5")
         
-        let requester = requesters[0];
+        let requester = requesters[requesters.length-1];
 
+        console.log(`point 6: 'requester.account.count'=='${requester.account.count}'`)
         assert(requester.account.count.toNumber() == 0);
-        assert(requester.account.authority.toString() == userKeypair.publicKey.toString());
+        console.log("point 7: ?requester.account.authority.toString() == userKeypair.publicKey.toString()?")
+        assert(requester.account.authority.toString() == userKeypair.publicKey.toString());      
+        console.log("point 8")
+        console.log(`'requester.account.activeRequest'=='${requester.account.activeRequest}'`)
         assert(!requester.account.activeRequest);
 
         console.log(`Cost of initialization is ${beforeBalance - afterBalance}`);
@@ -58,9 +67,9 @@ describe('solrand', () => {
 
         let requesters = await userSession.program.account.requester.all();
 
-        assert(requesters.length == 1);
+        assert(requesters.length >= 1);
         
-        let requester = requesters[0];
+        let requester = requesters[requesters.length-1];
         assert(requester.account.count.toNumber() == 1); // Before 0, now 1
         assert(requester.account.authority.toString() == userKeypair.publicKey.toString()); // Still the same owner
         assert(requester.account.activeRequest); // Now true
@@ -83,7 +92,7 @@ describe('solrand', () => {
         assert(requesters.length == 1);
 
         try {
-            await notOracleSession.publishRandom(requesters[0]);
+            await notOracleSession.publishRandom(requesters[requesters.length-1]);
         } catch (e) {
             assert(e.message.includes('You are not authorized'));
         }
@@ -100,9 +109,9 @@ describe('solrand', () => {
 
         requesters = await userSession.program.account.requester.all();
 
-        assert(requesters.length == 1);
+        assert(requesters.length >= 1);
         
-        let requester = requesters[0];
+        let requester = requesters[requesters.length-1];
         assert(requester.account.count.toNumber() == 1); // Still 1
         assert(requester.account.authority.toString() == userKeypair.publicKey.toString()); // Still the same owner
         assert(!requester.account.activeRequest); // Before true, Now false
@@ -113,7 +122,7 @@ describe('solrand', () => {
     it('Oracle cannot respond multiple times to request', async () => {
         let requesters = await userSession.program.account.requester.all();
         try {
-            await oracleSession.publishRandom(requesters[0]);
+            await oracleSession.publishRandom(requesters[requesters.length-1]);
         } catch (e) {
             assert(e.message.includes('You have already completed this transaction'));
         }
