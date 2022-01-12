@@ -13,7 +13,12 @@ describe('solrand', () => {
     const userSession = new UserSession(userKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, oracleKeypair.publicKey, ENV);
     const notOracleKeypair = anchor.web3.Keypair.generate();
     const notOracleSession = new OracleSession(notOracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
-    
+
+    async function getRequester(oraclePubKey) {
+        let requesters = await userSession.program.account.requester.all();
+        return requesters.filter(req => req.account.oracle.toString() == oraclePubKey.toString());
+    }
+
     it('Setting up tests', async() => {
         await userSession.requestAirdrop(AIRDROP);
         await oracleSession.requestAirdrop(AIRDROP);
@@ -38,8 +43,7 @@ describe('solrand', () => {
         await userSession.initializeAccount();
         const afterBalance = await userSession.getBalance();
 
-        console.log("point 3")
-        let requesters = await userSession.program.account.requester.all();
+        let requesters = await getRequester(oracleKeypair.publicKey);
 
         console.log("point 4: ", `'requesters.length'=='${requesters.length}'`)
         assert(requesters.length >= 1);
@@ -65,7 +69,7 @@ describe('solrand', () => {
         const afterBalance = await userSession.getBalance();
         const newOracleBalance = await oracleSession.getBalance();
 
-        let requesters = await userSession.program.account.requester.all();
+        let requesters = await getRequester(oracleKeypair.publicKey);
 
         assert(requesters.length >= 1);
         
@@ -87,7 +91,7 @@ describe('solrand', () => {
     });
 
     it('Wrong Oracle cannot respond to request', async () => {
-        let requesters = await userSession.program.account.requester.all();
+        let requesters = await getRequester(oracleKeypair.publicKey);
 
         assert(requesters.length == 1);
 
@@ -99,7 +103,7 @@ describe('solrand', () => {
     });
 
     it('Oracle can respond to request', async () => {
-        let requesters = await userSession.program.account.requester.all();
+        let requesters = await getRequester(oracleKeypair.publicKey);
 
         assert(requesters.length == 1);
 
@@ -107,9 +111,8 @@ describe('solrand', () => {
         await oracleSession.publishRandom(requesters[0]);
         const newOracleBalance = await oracleSession.getBalance();
 
-        requesters = await userSession.program.account.requester.all();
-
-        assert(requesters.length >= 1);
+        requesters =await getRequester(oracleKeypair.publicKey);
+        assert(requesters.length == 1);
         
         let requester = requesters[requesters.length-1];
         assert(requester.account.count.toNumber() == 1); // Still 1
@@ -120,7 +123,7 @@ describe('solrand', () => {
     });
 
     it('Oracle cannot respond multiple times to request', async () => {
-        let requesters = await userSession.program.account.requester.all();
+        let requesters = await getRequester(oracleKeypair.publicKey);
         try {
             await oracleSession.publishRandom(requesters[requesters.length-1]);
         } catch (e) {
