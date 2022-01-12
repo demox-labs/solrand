@@ -1,13 +1,15 @@
 [package]
-name = "solrand"
-version = "0.1.3"
-description = "A random number oracle for solana created by Demox Labs"
+name = "solrandhypn"
+version = "0.1.4"
+description = "A random number oracle for Solana created by Demox Labs, modified by HypnosisI2P"
 edition = "2018"
 license = "AGPL-3.0-or-later"
+repository = "https://github.com/nonlin-lin-chaos-order-etc-etal/solrandhypn"
+keywords = ["blockchain", "solana", "random"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "solrand"
+name = "solrandhypn"
 
 [features]
 no-entrypoint = []
