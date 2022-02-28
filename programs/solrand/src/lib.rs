@@ -139,12 +139,11 @@ pub mod solrand {
 
 
 #[derive(Accounts)]
-#[instruction(request_bump: u8, vault_bump: u8)]
 pub struct Initialize<'info> {
     #[account(
         init, 
         seeds = [b"r-seed".as_ref(), authority.key().as_ref()],
-        bump = request_bump,
+        bump,
         payer = authority,
         space = 8 + size_of::<Requester>()
     )]
@@ -152,13 +151,14 @@ pub struct Initialize<'info> {
     #[account(
         init,
         seeds = [b"v-seed".as_ref(), authority.key().as_ref()],
-        bump = vault_bump,
+        bump,
         payer = authority,
         space = 8 + size_of::<Vault>()
     )]
     pub vault: Account<'info, Vault>,
-    #[account(signer, mut)]
-    pub authority: AccountInfo<'info>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    /// CHECK: The client decides the oracle to use
     pub oracle: AccountInfo<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
@@ -190,8 +190,9 @@ pub struct RequestRandom<'info> {
     pub requester: AccountLoader<'info, Requester>,
     #[account(mut)]
     pub vault: Account<'info, Vault>,
-    #[account(signer, mut)]
-    pub authority: AccountInfo<'info>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    /// CHECK: The client decides the oracle to use
     #[account(mut)]
     pub oracle: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
@@ -207,8 +208,9 @@ pub struct PublishRandom<'info> {
 pub struct TransferAuthority<'info> {
     #[account(mut)]
     pub requester: AccountLoader<'info, Requester>,
-    #[account(signer, mut)]
-    pub authority: AccountInfo<'info>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    /// CHECK: The client decides the new owner
     #[account(mut)]
     pub new_authority: AccountInfo<'info>,
     pub system_program: Program<'info, System>,

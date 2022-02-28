@@ -1,5 +1,5 @@
 import * as anchor from '@project-serum/anchor';
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { UserSession, MockOracleSession as OracleSession } from "../app/sessions.js";
 
 describe('solrand', () => {
@@ -78,7 +78,7 @@ describe('solrand', () => {
         try {
             await userSession.requestRandom();
         } catch (e) {
-            assert(e.message.includes('A request is already in progress'));
+            assert(e.message.includes('0x12e'));
         }
     });
 
@@ -90,7 +90,7 @@ describe('solrand', () => {
         try {
             await notOracleSession.publishRandom(requesters[0]);
         } catch (e) {
-            assert(e.message.includes('You are not authorized'));
+            assert(e.message.includes('0x12c'));
         }
     });
 
@@ -119,7 +119,7 @@ describe('solrand', () => {
         try {
             await oracleSession.publishRandom(requesters[0]);
         } catch (e) {
-            assert(e.message.includes('You have already completed this transaction'));
+            assert(e.message.includes('0x12d'));
         }
     });
 });
