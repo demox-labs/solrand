@@ -62,6 +62,7 @@ The tests, `tests/solrand.ts`, provide examples in how to use our client library
 
 ## Problems with Anchor
 * The most common problem with anchor is using the right version of node. I recommend install Node through NVM and using `Node v16.11.1`. 
+* Anchor may and has introduced breaking changes. The current version is 0.22.0. I recommend installing Anchor Version Manager (AVM) to compile with different versions of Anchor. `cargo install --git https://github.com/project-serum/anchor avm --locked --force`
 
 # License
 
