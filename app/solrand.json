@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.1.4",
   "name": "solrand",
   "instructions": [
     {
@@ -230,34 +230,51 @@
       }
     }
   ],
-  "errors": [
+  "types": [
     {
-      "code": 300,
-      "name": "Unauthorized",
-      "msg": "You are not authorized to complete this transaction"
-    },
-    {
-      "code": 301,
-      "name": "AlreadyCompleted",
-      "msg": "You have already completed this transaction"
-    },
-    {
-      "code": 302,
-      "name": "InflightRequest",
-      "msg": "A request is already in progress. Only one request may be made at a time"
-    },
-    {
-      "code": 303,
-      "name": "WrongOracle",
-      "msg": "The Oracle you make the request with must be the same as initialization"
-    },
-    {
-      "code": 304,
-      "name": "RequesterLocked",
-      "msg": "You cannot change authority of a request awaiting a response"
+      "name": "ErrorCode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Unauthorized"
+          },
+          {
+            "name": "AlreadyCompleted"
+          },
+          {
+            "name": "InflightRequest"
+          },
+          {
+            "name": "WrongOracle"
+          },
+          {
+            "name": "RequesterLocked"
+          }
+        ]
+      }
     }
   ],
-  "metadata": {
-    "address": "GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS"
-  }
+  "events": [
+    {
+      "name": "RandomRequested",
+      "fields": [
+        {
+          "name": "requester",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RandomPublished",
+      "fields": [
+        {
+          "name": "requester",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    }
+  ]
 }
