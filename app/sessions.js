@@ -120,25 +120,28 @@ class MockOracleSession extends Session {
         let tlsId = randomBytes(32);
 
         anchor.setProvider(this.provider);
-        await this.program.rpc.publishRandom(
-            randomNumber,
-            pktId,
-            tlsId, 
-            {
-                accounts: {
-                    oracle: this.keypair.publicKey,
-                    requester: requester.publicKey,
-                    systemProgram: anchor.web3.SystemProgram.programId,
-                },
-                remainingAccounts: [
-                    {
-                        pubkey: requester.publicKey,
-                        isWritable: true,
-                        isSigner: false,
+        await this.provider.connection.confirmTransaction(
+            await this.program.rpc.publishRandom(
+                randomNumber,
+                pktId,
+                tlsId,
+                {
+                    accounts: {
+                        oracle: this.keypair.publicKey,
+                        requester: requester.publicKey,
+                        systemProgram: anchor.web3.SystemProgram.programId,
                     },
-                ],
-                signers: [this.keypair],
-            },
+                    remainingAccounts: [
+                        {
+                            pubkey: requester.publicKey,
+                            isWritable: true,
+                            isSigner: false,
+                        },
+                    ],
+                    signers: [this.keypair],
+                },
+            ),
+            'confirmed'
         );
     }
 }

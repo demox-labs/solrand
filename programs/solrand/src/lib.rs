@@ -7,7 +7,7 @@ declare_id!("GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS");
 pub mod solrand {
     use super::*;
 
-    const ORACLE_FEE: u64 = 495000; //  Approximately $0.09 = 0.000000001 * $175 * 495,000
+    const ORACLE_FEE: u64 = 15000; //  Approximately $0.0015 usd = 0.000000001 * $100 * 15,000
 
     pub fn initialize(
         ctx: Context<Initialize>,
@@ -83,6 +83,10 @@ pub mod solrand {
             requester.active_request = true;
             requester.count += 1;
         }
+
+        emit!(RandomRequested {
+            requester: ctx.accounts.requester.to_account_info().key()
+        });
         
         Ok(())
     }
@@ -93,24 +97,30 @@ pub mod solrand {
         pkt_id: [u8; 32],
         tls_id: [u8; 32],
     ) -> ProgramResult {
-        // Have to load the account this way to avoid automated ownership checks
-        let loader: Loader<Requester> = Loader::try_from_unchecked(ctx.program_id, &ctx.remaining_accounts[0]).unwrap();
-        let mut requester = loader.load_mut()?;
+        {
+            // Have to load the account this way to avoid automated ownership checks
+            let loader: Loader<Requester> = Loader::try_from_unchecked(ctx.program_id, &ctx.remaining_accounts[0]).unwrap();
+            let mut requester = loader.load_mut()?;
 
-        if requester.oracle != ctx.accounts.oracle.key() {
-            return Err(ErrorCode::Unauthorized.into());
+            if requester.oracle != ctx.accounts.oracle.key() {
+                return Err(ErrorCode::Unauthorized.into());
+            }
+
+            if !requester.active_request {
+                return Err(ErrorCode::AlreadyCompleted.into())
+            }
+            let clock: Clock = Clock::get().unwrap();
+
+            requester.last_updated = clock.unix_timestamp;
+            requester.active_request = false;
+            requester.random = random;
+            requester.pkt_id = pkt_id;
+            requester.tls_id = tls_id;
         }
 
-        if !requester.active_request {
-            return Err(ErrorCode::AlreadyCompleted.into())
-        }
-        let clock: Clock = Clock::get().unwrap();
-
-        requester.last_updated = clock.unix_timestamp;
-        requester.active_request = false;
-        requester.random = random;
-        requester.pkt_id = pkt_id;
-        requester.tls_id = tls_id;
+        emit!(RandomPublished {
+            requester: ctx.remaining_accounts[0].key()
+        });        
 
         Ok(())
     }
@@ -228,4 +238,14 @@ pub enum ErrorCode {
     WrongOracle,
     #[msg("You cannot change authority of a request awaiting a response")]
     RequesterLocked,
+}
+
+#[event]
+pub struct RandomRequested {
+    pub requester: Pubkey,
+}
+
+#[event]
+pub struct RandomPublished {
+    pub requester: Pubkey,
 }
