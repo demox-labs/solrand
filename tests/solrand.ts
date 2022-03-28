@@ -5,7 +5,7 @@ import { UserSession, MockOracleSession as OracleSession } from "../app/sessions
 describe('solrand', () => {
     const ENV = 'http://localhost:8899';
     const AIRDROP = 1000000000;
-    const FEE = 495000; // In lamports, defined in lib.rs
+    const FEE = 15000; // In lamports, defined in lib.rs
 
     const oracleKeypair = anchor.web3.Keypair.generate();
     const oracleSession = new OracleSession(oracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
