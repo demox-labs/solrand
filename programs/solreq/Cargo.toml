@@ -1,0 +1,21 @@
+[package]
+name = "solreq"
+version = "0.1.5"
+description = "Arbitrary HTTPS requests oracle for solana created by Demox Labs"
+edition = "2018"
+license = "AGPL-3.0-or-later"
+homepage = "https://github.com/demoxgarden/solreq"
+repository = "https://github.com/demoxgarden/solreq"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "solreq"
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.18.2"

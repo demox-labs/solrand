@@ -1,10 +1,10 @@
 use anchor_lang::prelude::*;
 use std::mem::size_of;
 
-declare_id!("GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS");
+declare_id!("6DeKhrczNofy2fhDhJXnyZpMnRnS4oA4q3NicngF7fzT");
 
 #[program]
-pub mod solrand {
+pub mod solreq {
     use super::*;
 
     const ORACLE_FEE: u64 = 15000; //  Approximately $0.0015 usd = 0.000000001 * $100 * 15,000
@@ -33,8 +33,8 @@ pub mod solrand {
         Ok(())
     }
 
-    pub fn request_random(
-        ctx: Context<RequestRandom>,
+    pub fn request_result(
+        ctx: Context<RequestResult>,
     ) -> ProgramResult {
         // Some checks to ensure proper account ownership
         {
@@ -84,16 +84,16 @@ pub mod solrand {
             requester.count += 1;
         }
 
-        emit!(RandomRequested {
+        emit!(ResultRequested {
             requester: ctx.accounts.requester.to_account_info().key()
         });
         
         Ok(())
     }
 
-    pub fn publish_random(
-        ctx: Context<PublishRandom>,
-        random: [u8; 64],
+    pub fn publish_result(
+        ctx: Context<PublishResult>,
+        result: [u8; 64],
         pkt_id: [u8; 32],
         tls_id: [u8; 32],
     ) -> ProgramResult {
@@ -113,12 +113,12 @@ pub mod solrand {
 
             requester.last_updated = clock.unix_timestamp;
             requester.active_request = false;
-            requester.random = random;
+            requester.result = result;
             requester.pkt_id = pkt_id;
             requester.tls_id = tls_id;
         }
 
-        emit!(RandomPublished {
+        emit!(ResultPublished {
             requester: ctx.remaining_accounts[0].key()
         });        
 
@@ -181,7 +181,7 @@ pub struct Requester {
     pub created_at: i64,
     pub count: u64,
     pub last_updated: i64,
-    pub random: [u8; 64],
+    pub result: [u8; 64],
     pub pkt_id: [u8; 32],
     pub tls_id: [u8; 32],
     pub active_request: bool,
@@ -195,7 +195,7 @@ pub struct Vault {
 }
 
 #[derive(Accounts)]
-pub struct RequestRandom<'info> {
+pub struct RequestResult<'info> {
     #[account(mut)]
     pub requester: AccountLoader<'info, Requester>,
     #[account(mut)]
@@ -209,7 +209,7 @@ pub struct RequestRandom<'info> {
 }
 
 #[derive(Accounts)]
-pub struct PublishRandom<'info> {
+pub struct PublishResult<'info> {
     pub oracle: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -241,11 +241,11 @@ pub enum ErrorCode {
 }
 
 #[event]
-pub struct RandomRequested {
+pub struct ResultRequested {
     pub requester: Pubkey,
 }
 
 #[event]
-pub struct RandomPublished {
+pub struct ResultPublished {
     pub requester: Pubkey,
 }
