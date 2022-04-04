@@ -52,6 +52,8 @@ describe('solrand', () => {
         assert(!requester.account.activeRequest);
 
         console.log(`Cost of initialization is ${beforeBalance - afterBalance}`);
+
+        await userSession.airdropVaultAccount();
     });
 
     it('Creates a random request', async () => {
