@@ -11,11 +11,10 @@ class Session {
         this.idl = idl;
         this.programId = programId;
         this.seed = "r-seed";
-        this.vaultSeed = "v-seed";
 
         this.solConnection = new anchor.web3.Connection(env);
         this.walletWrapper = new anchor.Wallet(this.keypair);
-        this.provider = new anchor.Provider(this.solConnection, this.walletWrapper, {
+        this.provider = new anchor.AnchorProvider(this.solConnection, this.walletWrapper, {
             preflightCommitment: 'recent',
         });
         this.program = new anchor.Program(idl, programId, this.provider);
@@ -40,9 +39,10 @@ class Session {
  * Defines a session to interact as the user requesting random information.
  */
 class UserSession extends Session {
-    constructor(keypair, idl, programId, oraclePubkey, env) {
+    constructor(keypair, idl, programId, oraclePubkey, env, uuid) {
         super(keypair, idl, programId, env);
         this.oraclePubkey = oraclePubkey;
+        this.uuid = new anchor.BN(uuid);
     }
 
     /**
@@ -52,58 +52,51 @@ class UserSession extends Session {
      */
     async setAccounts() {
         anchor.setProvider(this.provider);
+        const uuidBytes = this.uuid.toArrayLike(Buffer, 'le', 8);
         [this.reqAccount, this.reqBump] = await anchor.web3.PublicKey.findProgramAddress(
-            [Buffer.from(this.seed), this.keypair.publicKey.toBuffer()],
+            [Buffer.from(this.seed), this.keypair.publicKey.toBuffer(), uuidBytes],
             this.programId
             );
-
-        [this.vaultAccount, this.vaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-            [Buffer.from(this.vaultSeed), this.keypair.publicKey.toBuffer()],
-            this.programId
-            );
-    }
-
-    // Only use this locally
-    async airdropVaultAccount(amount=1000000000) {
-        anchor.setProvider(this.provider);
-
-        await this.provider.connection.confirmTransaction(
-            await this.provider.connection.requestAirdrop(this.vaultAccount, amount),
-            "confirmed"
-        );
     }
 
     async initializeAccount() {
         anchor.setProvider(this.provider);
-        await this.program.rpc.initialize(
-            this.reqBump,
-            this.vaultBump,
-            {
-                accounts: {
-                    requester: this.reqAccount,
-                    vault: this.vaultAccount,
-                    authority: this.keypair.publicKey,
-                    oracle: this.oraclePubkey,
-                    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-                    systemProgram: anchor.web3.SystemProgram.programId,
-                },
-                signers: [this.keypair],
-            }
-        );
+        await this.program.methods.initialize(this.reqBump, this.uuid)
+            .accounts({
+                requester: this.reqAccount,
+                authority: this.keypair.publicKey,
+                oracle: this.oraclePubkey,
+                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                systemProgram: anchor.web3.SystemProgram.programId
+            })
+            .signers([this.keypair])
+            .rpc();
     }
 
     async requestRandom() {
         anchor.setProvider(this.provider);
-        await this.program.rpc.requestRandom({
-            accounts: {
+        await this.program.methods.requestRandom()
+            .accounts({
                 requester: this.reqAccount,
                 vault: this.vaultAccount,
                 authority: this.keypair.publicKey,
                 oracle: this.oraclePubkey,
+                systemProgram: anchor.web3.SystemProgram.programId
+            })
+            .signers([this.keypair])
+            .rpc();
+    }
+
+    async cancelAccount() {
+        anchor.setProvider(this.provider);
+        await this.program.methods.cancel()
+            .accounts({
+                requester: this.reqAccount,
+                authority: this.keypair.publicKey,
                 systemProgram: anchor.web3.SystemProgram.programId,
-            },
-            signers: [this.keypair],
-        });
+            })
+            .signers([this.keypair])
+            .rpc();
     }
 }
 
@@ -120,29 +113,14 @@ class MockOracleSession extends Session {
         let tlsId = randomBytes(32);
 
         anchor.setProvider(this.provider);
-        await this.provider.connection.confirmTransaction(
-            await this.program.rpc.publishRandom(
-                randomNumber,
-                pktId,
-                tlsId,
-                {
-                    accounts: {
-                        oracle: this.keypair.publicKey,
-                        requester: requester.publicKey,
-                        systemProgram: anchor.web3.SystemProgram.programId,
-                    },
-                    remainingAccounts: [
-                        {
-                            pubkey: requester.publicKey,
-                            isWritable: true,
-                            isSigner: false,
-                        },
-                    ],
-                    signers: [this.keypair],
-                },
-            ),
-            'confirmed'
-        );
+        await this.program.methods.publishRandom(randomNumber, pktId, tlsId)
+            .accounts({
+                oracle: this.keypair.publicKey,
+                requester: requester.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            })
+            .signers([this.keypair])
+            .rpc();
     }
 }
 

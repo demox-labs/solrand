@@ -1,6 +1,6 @@
 [package]
 name = "solrand"
-version = "0.1.4"
+version = "0.1.5"
 description = "A random number oracle for solana created by Demox Labs"
 edition = "2018"
 license = "AGPL-3.0-or-later"
@@ -16,4 +16,4 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.18.2"
+anchor-lang = "0.24.2"

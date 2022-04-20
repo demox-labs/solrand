@@ -16,11 +16,11 @@ This repository creates the:
 1. Rename the `Anchor.example.toml` to `Anchor.toml` and update the `wallet =` to your solana key.
 1. Start the `solana-test-validator`
 1. Run `anchor build && anchor deploy`
-1. Use the Program Id found from the deploy. Replace `GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS` with your new Program Id.
+1. Use the Program Id found from the deploy. Replace `8nzxsNf74ZHDguHi51SjQWxDxegL2DBgxeGHA2pQVtTJ` with your new Program Id.
 1. Run the tests: `anchor test`
 
 ## Install the crate:
-Add `solrand = { version = "0.1.3", features = ["cpi"] }` to your Cargo.toml
+Add `solrand = { version = "0.1.5", features = ["cpi"] }` to your Cargo.toml
 
 ## Install the js client library:
 `npm i @demox-labs/solrand --save`
