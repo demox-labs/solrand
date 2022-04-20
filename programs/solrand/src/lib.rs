@@ -1,33 +1,27 @@
 use anchor_lang::prelude::*;
 use std::mem::size_of;
 
-declare_id!("GxJJd3q28eUd7kpPCbNXGeixqHmBYJ2owqUYqse3ZrGS");
+declare_id!("8nzxsNf74ZHDguHi51SjQWxDxegL2DBgxeGHA2pQVtTJ");
 
 #[program]
 pub mod solrand {
     use super::*;
 
-    const ORACLE_FEE: u64 = 15000; //  Approximately $0.0015 usd = 0.000000001 * $100 * 15,000
-
     pub fn initialize(
         ctx: Context<Initialize>,
         request_bump: u8,
-        vault_bump: u8,
-    ) -> ProgramResult {
-        // Set the vault account, used to pay the oracle
-        ctx.accounts.vault.requester = *ctx.accounts.requester.to_account_info().key;
-        ctx.accounts.vault.bump = vault_bump;
-
-        let requester = &mut ctx.accounts.requester.load_init()?;
+        uuid: u64,
+    ) -> Result<()> {
+        let requester = &mut ctx.accounts.requester;
         let clock: Clock = Clock::get().unwrap();
 
-        // The requester is ZeroCopy and stores the random number
         requester.authority = *ctx.accounts.authority.key;
         requester.oracle = *ctx.accounts.oracle.key;
         requester.created_at = clock.unix_timestamp;
         requester.count = 0;
         requester.active_request = false;
         requester.last_updated = clock.unix_timestamp;
+        requester.uuid = uuid;
         requester.bump = request_bump;
 
         Ok(())
@@ -35,16 +29,10 @@ pub mod solrand {
 
     pub fn request_random(
         ctx: Context<RequestRandom>,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         // Some checks to ensure proper account ownership
         {
-            let requester_key = ctx.accounts.requester.to_account_info().key();
-
-            if requester_key != ctx.accounts.vault.requester {
-                return Err(ErrorCode::Unauthorized.into());
-            }
-
-            let requester = &mut ctx.accounts.requester.load()?;
+            let requester = &mut ctx.accounts.requester;
             let authority = ctx.accounts.authority.key();
     
             if requester.authority != authority {
@@ -60,23 +48,9 @@ pub mod solrand {
             }
         }
 
-        // Transfer fee to Oracle
-        {
-            let vault = ctx.accounts.vault.to_account_info();
-
-            **vault.try_borrow_mut_lamports()? = vault.lamports()
-                .checked_sub(ORACLE_FEE)
-                .ok_or(ProgramError::InvalidArgument)?;
-
-            **ctx.accounts.oracle.try_borrow_mut_lamports()? = ctx.accounts.oracle.lamports()
-                .checked_add(ORACLE_FEE)
-                .ok_or(ProgramError::InvalidArgument)?;
-            
-        }
-
         // Once the requester has active_request set, it's frozen until the Oracle responds
         {
-            let requester = &mut ctx.accounts.requester.load_mut()?;
+            let requester = &mut ctx.accounts.requester;
             let clock: Clock = Clock::get().unwrap();
 
             requester.last_updated = clock.unix_timestamp;
@@ -96,11 +70,10 @@ pub mod solrand {
         random: [u8; 64],
         pkt_id: [u8; 32],
         tls_id: [u8; 32],
-    ) -> ProgramResult {
+    ) -> Result<()> {
         {
             // Have to load the account this way to avoid automated ownership checks
-            let loader: Loader<Requester> = Loader::try_from_unchecked(ctx.program_id, &ctx.remaining_accounts[0]).unwrap();
-            let mut requester = loader.load_mut()?;
+            let requester = &mut ctx.accounts.requester;
 
             if requester.oracle != ctx.accounts.oracle.key() {
                 return Err(ErrorCode::Unauthorized.into());
@@ -119,7 +92,7 @@ pub mod solrand {
         }
 
         emit!(RandomPublished {
-            requester: ctx.remaining_accounts[0].key()
+            requester: ctx.accounts.requester.key()
         });        
 
         Ok(())
@@ -130,8 +103,8 @@ pub mod solrand {
      */
     pub fn transfer_authority(
         ctx: Context<TransferAuthority>
-    ) -> ProgramResult {
-        let requester = &mut ctx.accounts.requester.load_mut()?;
+    ) -> Result<()> {
+        let requester = &mut ctx.accounts.requester;
 
         if requester.authority != ctx.accounts.authority.key() {
             return Err(ErrorCode::Unauthorized.into());
@@ -145,27 +118,37 @@ pub mod solrand {
 
         Ok(())
     }
+
+    pub fn cancel(
+        ctx: Context<Cancel>
+    ) -> Result<()> {
+        let authority_key = ctx.accounts.authority.key();
+        let requester = &mut ctx.accounts.requester;
+
+        if authority_key != requester.authority {
+            return Err(ErrorCode::Unauthorized.into());
+        }
+
+        if requester.active_request {
+            return Err(ErrorCode::RequesterLocked.into());
+        }
+
+        Ok(())
+    }
 }
 
 
 #[derive(Accounts)]
+#[instruction(_request_bump: u8, uuid: u64)]
 pub struct Initialize<'info> {
     #[account(
         init, 
-        seeds = [b"r-seed".as_ref(), authority.key().as_ref()],
+        seeds = [b"r-seed".as_ref(), authority.key().as_ref(), &uuid.to_le_bytes()],
         bump,
         payer = authority,
         space = 8 + size_of::<Requester>()
     )]
-    pub requester: AccountLoader<'info, Requester>,
-    #[account(
-        init,
-        seeds = [b"v-seed".as_ref(), authority.key().as_ref()],
-        bump,
-        payer = authority,
-        space = 8 + size_of::<Vault>()
-    )]
-    pub vault: Account<'info, Vault>,
+    pub requester: Account<'info, Requester>,
     #[account(mut)]
     pub authority: Signer<'info>,
     /// CHECK: The client decides the oracle to use
@@ -174,7 +157,7 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-#[account(zero_copy)]
+#[account]
 pub struct Requester {
     pub authority: Pubkey,
     pub oracle: Pubkey,
@@ -185,21 +168,14 @@ pub struct Requester {
     pub pkt_id: [u8; 32],
     pub tls_id: [u8; 32],
     pub active_request: bool,
-    pub bump: u8,
-}
-
-#[account]
-pub struct Vault {
-    pub requester: Pubkey,
+    pub uuid: u64,
     pub bump: u8,
 }
 
 #[derive(Accounts)]
 pub struct RequestRandom<'info> {
     #[account(mut)]
-    pub requester: AccountLoader<'info, Requester>,
-    #[account(mut)]
-    pub vault: Account<'info, Vault>,
+    pub requester: Account<'info, Requester>,
     #[account(mut)]
     pub authority: Signer<'info>,
     /// CHECK: The client decides the oracle to use
@@ -210,6 +186,8 @@ pub struct RequestRandom<'info> {
 
 #[derive(Accounts)]
 pub struct PublishRandom<'info> {
+    #[account(mut)]
+    pub requester: Account<'info, Requester>,
     pub oracle: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -217,7 +195,7 @@ pub struct PublishRandom<'info> {
 #[derive(Accounts)]
 pub struct TransferAuthority<'info> {
     #[account(mut)]
-    pub requester: AccountLoader<'info, Requester>,
+    pub requester: Account<'info, Requester>,
     #[account(mut)]
     pub authority: Signer<'info>,
     /// CHECK: The client decides the new owner
@@ -226,7 +204,15 @@ pub struct TransferAuthority<'info> {
     pub system_program: Program<'info, System>,
 }
 
-#[error]
+#[derive(Accounts)]
+pub struct Cancel<'info> {
+    #[account(mut, close = authority)]
+    pub requester: Account<'info, Requester>,
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[error_code]
 pub enum ErrorCode {
     #[msg("You are not authorized to complete this transaction")]
     Unauthorized,

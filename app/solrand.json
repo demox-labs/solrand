@@ -1,5 +1,5 @@
 {
-  "version": "0.1.4",
+  "version": "0.1.5",
   "name": "solrand",
   "instructions": [
     {
@@ -7,11 +7,6 @@
       "accounts": [
         {
           "name": "requester",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "vault",
           "isMut": true,
           "isSigner": false
         },
@@ -42,8 +37,8 @@
           "type": "u8"
         },
         {
-          "name": "vaultBump",
-          "type": "u8"
+          "name": "uuid",
+          "type": "u64"
         }
       ]
     },
@@ -52,11 +47,6 @@
       "accounts": [
         {
           "name": "requester",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "vault",
           "isMut": true,
           "isSigner": false
         },
@@ -81,6 +71,11 @@
     {
       "name": "publishRandom",
       "accounts": [
+        {
+          "name": "requester",
+          "isMut": true,
+          "isSigner": false
+        },
         {
           "name": "oracle",
           "isMut": false,
@@ -139,6 +134,27 @@
           "name": "newAuthority",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel",
+      "accounts": [
+        {
+          "name": "requester",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "systemProgram",
@@ -207,49 +223,12 @@
             "type": "bool"
           },
           {
-            "name": "bump",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Vault",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "requester",
-            "type": "publicKey"
+            "name": "uuid",
+            "type": "u64"
           },
           {
             "name": "bump",
             "type": "u8"
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "ErrorCode",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unauthorized"
-          },
-          {
-            "name": "AlreadyCompleted"
-          },
-          {
-            "name": "InflightRequest"
-          },
-          {
-            "name": "WrongOracle"
-          },
-          {
-            "name": "RequesterLocked"
           }
         ]
       }
@@ -275,6 +254,33 @@
           "index": false
         }
       ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "You are not authorized to complete this transaction"
+    },
+    {
+      "code": 6001,
+      "name": "AlreadyCompleted",
+      "msg": "You have already completed this transaction"
+    },
+    {
+      "code": 6002,
+      "name": "InflightRequest",
+      "msg": "A request is already in progress. Only one request may be made at a time"
+    },
+    {
+      "code": 6003,
+      "name": "WrongOracle",
+      "msg": "The Oracle you make the request with must be the same as initialization"
+    },
+    {
+      "code": 6004,
+      "name": "RequesterLocked",
+      "msg": "You cannot change authority of a request awaiting a response"
     }
   ]
 }

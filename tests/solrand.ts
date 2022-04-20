@@ -5,13 +5,16 @@ import { UserSession, MockOracleSession as OracleSession } from "../app/sessions
 describe('solrand', () => {
     const ENV = 'http://localhost:8899';
     const AIRDROP = 1000000000;
-    const FEE = 15000; // In lamports, defined in lib.rs
+    const uuid = Math.floor(Math.random() * 2**50);
 
     const oracleKeypair = anchor.web3.Keypair.generate();
+    console.log(`Oracle pubkey: ${oracleKeypair.publicKey}`);
     const oracleSession = new OracleSession(oracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
     const userKeypair = anchor.web3.Keypair.generate();
-    const userSession = new UserSession(userKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, oracleKeypair.publicKey, ENV);
+    console.log(`User pubkey: ${userKeypair.publicKey}`);
+    const userSession = new UserSession(userKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, oracleKeypair.publicKey, ENV, uuid);
     const notOracleKeypair = anchor.web3.Keypair.generate();
+    console.log(`Not oracle pubkey: ${notOracleKeypair.publicKey}`);
     const notOracleSession = new OracleSession(notOracleKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, ENV);
 
     async function getRequester(oraclePubKey) {
@@ -52,8 +55,6 @@ describe('solrand', () => {
         assert(!requester.account.activeRequest);
 
         console.log(`Cost of initialization is ${beforeBalance - afterBalance}`);
-
-        await userSession.airdropVaultAccount();
     });
 
     it('Creates a random request', async () => {
@@ -71,16 +72,13 @@ describe('solrand', () => {
         assert(requester.account.count.toNumber() == 1); // Before 0, now 1
         assert(requester.account.authority.toString() == userKeypair.publicKey.toString()); // Still the same owner
         assert(requester.account.activeRequest); // Now true
-
-        console.log(`Cost of request is ${beforeBalance - afterBalance}`);
-        assert((newOracleBalance - oldOracleBalance) == FEE);
     });
 
     it('Cannot make multiple requests in a row', async () => {
         try {
             await userSession.requestRandom();
         } catch (e) {
-            assert(e.message.includes('0x12e'));
+            assert(e.message.includes('A request is already in progress. Only one request may be made at a time'));
         }
     });
 
@@ -92,13 +90,12 @@ describe('solrand', () => {
         try {
             await notOracleSession.publishRandom(requesters[0]);
         } catch (e) {
-            assert(e.message.includes('0x12c'));
+            assert(e.message.includes('You are not authorized to complete this transaction'));
         }
     });
 
     it('Oracle can respond to request', async () => {
         let requesters = await getRequester(oracleKeypair.publicKey);
-
         assert(requesters.length == 1);
 
         const oldOracleBalance = await oracleSession.getBalance();
@@ -121,7 +118,33 @@ describe('solrand', () => {
         try {
             await oracleSession.publishRandom(requesters[0]);
         } catch (e) {
-            assert(e.message.includes('0x12d'));
+            assert(e.message.includes('You have already completed this transaction'));
         }
+    });
+
+    it('Can cancel account', async () => {
+        let requesters = await getRequester(oracleKeypair.publicKey);
+        assert(requesters.length == 1);
+
+        await userSession.cancelAccount();
+
+        requesters = await getRequester(oracleKeypair.publicKey);
+        assert(requesters.length == 0);
+    });
+
+    it('Can initialize multiple accounts', async () => {
+        let requesters = await getRequester(oracleKeypair.publicKey);
+        assert(requesters.length == 0);
+
+        const numAccounts = 3;
+
+        for (let i = 0; i < numAccounts; i++) {
+            let uSession = new UserSession(userKeypair, anchor.workspace.Solrand.idl, anchor.workspace.Solrand.programId, oracleKeypair.publicKey, ENV, i);
+            await uSession.setAccounts();
+            await uSession.initializeAccount();
+        }
+
+        requesters = await getRequester(oracleKeypair.publicKey);
+        assert(requesters.length == numAccounts);
     });
 });
