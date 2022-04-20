@@ -1,7 +1,7 @@
 {
   "name": "@demox-labs/solrand",
   "description": "A js client to interact with the solrand program",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "repository": {
     "type": "git",
     "url": "https://github.com/evanmarshall/solrand.git"
