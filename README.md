@@ -29,24 +29,15 @@ Add `solrand = { version = "0.1.5", features = ["cpi"] }` to your Cargo.toml
 
 ## For CPI Calls
 
-If you're writing a Solana program to interact with this one, we recommend:
-1. Installing & running the `solana-test-validator`
-2. Clone & Install this repository with the instructions above.
-3. Run `anchor build && anchor deploy` or `anchor test --skip-local-validator` to deploy program to test validator. You'll need to redo this if you ever reset the `solana-test-validator` for example by running it with `-r`.
+If you're writing a Solana program to interact with this one, we recommend copying the program accounts to your local `solana-test-validator` using: `solana-test-validator --clone 8nzxsNf74ZHDguHi51SjQWxDxegL2DBgxeGHA2pQVtTJ K2z1qkxZdsw6WpFd63hqhqx9MYUc5c85NdbXULNeGhW --url d`
+* Note in order for the `--clone` to work, make sure the `solana-test-validator` is starting from a clean installation.
+* You can make sure the program accounts are there by running: `curl http://localhost:8899 -X POST -H "Content-Type: application/json" -d '
+  {"jsonrpc":"2.0", "id":1, "method":"getAccountInfo", "params": ["8nzxsNf74ZHDguHi51SjQWxDxegL2DBgxeGHA2pQVtTJ"]}'`
 
 Now you can run your program using for example:
 * `anchor build && anchor deploy && node my-script.js`
 * `anchor test --skip-test-validator`
 
-You could alternatively copy the state of devnet and load it locally but full installation is recommended as described.
-Any CPI call should test all error states & full installation makes development much easier if you can update the program to force them. 
-
-
-# Examples
-
-## On chain
-
-The best resource for understanding how to interact with solrand is through the P2P Coin Flip is the example here: https://github.com/evanmarshall/cross-pile
 
 ## Client
 
